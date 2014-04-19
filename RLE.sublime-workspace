@@ -1,0 +1,300 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"merge",
+				"mergesort"
+			],
+			[
+				"post",
+				"postorder"
+			],
+			[
+				"tai",
+				"tailL"
+			],
+			[
+				"hea",
+				"headL"
+			],
+			[
+				"head",
+				"headL"
+			],
+			[
+				"move",
+				"moveRight"
+			],
+			[
+				"re",
+				"return"
+			],
+			[
+				"min-",
+				"min-height"
+			],
+			[
+				"padi",
+				"padding-bottom"
+			],
+			[
+				"paddi",
+				"padding-top"
+			],
+			[
+				"paddin",
+				"padding-top"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "RLE.asm",
+			"settings":
+			{
+				"buffer_size": 4972,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/Lua Dev/Lua.sublime-build",
+	"command_palette":
+	{
+		"height": 306.0,
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Contr",
+				"Preferences: Package Control Settings – Default"
+			],
+			[
+				"Snippet: ",
+				"Snippet: ipad"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: instal",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: In",
+				"Package Control: Install Package"
+			],
+			[
+				"",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 476.0
+	},
+	"console":
+	{
+		"height": 139.0,
+		"history":
+		[
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/beatka/Temp/linux_mbb_install/mbbservice.bin",
+		"/home/beatka/Beatka/AGH/Asemblery/SSHKey/SSHKey.asm",
+		"/home/beatka/.minecraft/saves/ComputerCraft Lab-/computer/109/got",
+		"/home/beatka/Beatka/AGH/Logika/lab1/part_one/czesc1.sml",
+		"/home/beatka/Beatka/AGH/Logika/lab1/part_two/czesc2.sml",
+		"/home/beatka/Beatka/AGH/Logika/zadanie1/part_two/czesc2.sml",
+		"/home/beatka/Beatka/AGH/Logika/zadanie1/part_one/czesc1.sml",
+		"/home/beatka/Beatka/AGH/Logika/lab1/part_one/czesc1-sig.sml",
+		"/home/coding/8086/SSHKey.asm",
+		"/home/beatka/.wine/drive_c/emu8086/MySource/Zadanie1/parseArgsAlt.asm",
+		"/home/beatka/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/home/beatka/.wine/drive_c/emu8086/MySource/Zadanie1/parseArgs.asm",
+		"/home/beatka/Beatka/AGH/Asemblery/readArgs.asm",
+		"/home/beatka/Apps/wordpress/wp-config.php",
+		"/home/beatka/.minecraft/shaderpacks/SEUS Standard/shaders/composite.vsh",
+		"/home/beatka/Beatka/AGH/Logika/lab1/part_one/sources.cm",
+		"/home/beatka/dht.dat",
+		"/home/beatka/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
+		"/home/beatka/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/home/beatka/.config/sublime-text-3/Packages/Lua Dev/Lua Dev.sublime-settings",
+		"/home/beatka/Beatka/Web Design/projects/TravelInfo/index.html",
+		"/tmp/fz3temp-1/recyclingDeclaration.php",
+		"/tmp/fz3temp-1/base.php",
+		"/tmp/fz3temp-1/index.php",
+		"/tmp/fz3temp-1/orderlist.php",
+		"/tmp/fz3temp-1/list.php",
+		"/tmp/fz3temp-1/recyclingUser.php",
+		"/home/beatka/Telltale Games/The Walking Dead Season 2/choice.prop",
+		"/home/beatka/Beatka/Web Design/projects/TravelInfo/js/script.coffee",
+		"/home/beatka/Beatka/Web Design/projects/portfolio/html/index.html",
+		"/tmp/fz3temp-1/global.css"
+	],
+	"find":
+	{
+		"height": 25.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"y"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "RLE.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4972,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								513,
+								513
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/MasmAssembly/MasmAssembly.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 112.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "RLE.sublime-project",
+	"replace":
+	{
+		"height": 46.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
