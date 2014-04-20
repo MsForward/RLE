@@ -7,16 +7,23 @@ data segment
 ; RLE
 	input						db 0							; input file name
 	output					db 0							; output file name
-	decopress				db 0 							; 0 if compressing input 1 if decompressig input
+	option-d				db 0 							; 0 if compressing input 1 if decompressig input
+	buffer					dq 2048 dup(?)
+	bufferSize			dw 2000h
+	bufferPtr				db 0
 
 ; Error messages
+	errorPtr				db 255 dup(0)
 	e01h						db "Invalid function number.","$"
 	e02h						db "Input file not found","$"
 	e03h						db "Path not found.","$"
 	e04h						db "Too many open files!","$"
 	e05h						db "Access denied.","$"
+	e06h						db "File read failed.","$"
 	e0Ch						db "Invalid access mode.","$"
 	e56h						db "Invalid password.","$"
+	argNumError			db "Invalid number of arguments. Usage: RLE [-d] input output","$"
+	optionError			db "Invalid option. Usage: TLE [-d] input output","$"
 data ends
 
 .286
@@ -35,8 +42,41 @@ start:
 	putChar endp
 
 	getChar proc
+	; return AL = character
+		mov al, offset bufferPtr
+		cmp bufferPtr, al
+		jne getBufferedChar
+
+		call read
+
+		getBufferedChar:
+			mov al, [buffer + al]
 
 	getChar endp
+
+	read proc
+	; entry: DX = file handle
+	; return: AX = number of bytes actually read
+		push bx
+		push cx
+		push dx
+
+		mov cx, bufferSize
+		mov bx, dx
+		mov dx, offset buffer
+		mov ah, 3Fh
+		int 21h
+		jnc endRead
+
+		mov dx, ax
+		call printError
+
+		endRead:
+		pop dx
+		pop cx
+		pop bx
+		ret
+	read endp
 
 	open proc
 	; entry: DL = file name offset, AL = access mode 0 read only 1 write only
@@ -60,6 +100,48 @@ start:
 		pop ax
 		ret
 	open endp
+
+	checkArgs proc
+		push ax
+		push bx
+		push dx
+
+		xor bx, bx
+
+		cmp argNum, 3
+		je addOption 
+		cmp argNum, 2
+		jne wrongArgNum
+		jmp endCheckArgs
+
+		addOption:
+			xor dl, dl
+			call getArgLen
+			cmp al, 2h
+			jne wrongOption
+
+			call getArg
+			mov bl, al
+			mov ax, word ptr ds:[bx]
+			cmp ax, "-d"
+			jne wrongOption
+			mov option-d, 1
+			jmp endCheckArgs
+
+		wrongArgNum:
+			mov dx, 0FFh
+			call printError
+		wrongOption:
+			mov dx, 0FEh
+			call printError
+
+		endCheckArgs:
+
+		pop dx
+		pop bx
+		pop ax	
+		ret
+	checkArgs endp
 
 	parseArgs proc
     push ax
@@ -260,6 +342,8 @@ start:
 
 	printError proc
 	; entry: DX = error number
+		mov bx, dx
+		mov dx, [errorPtr + bx]
 		call println
 		call exit
 		ret
@@ -307,6 +391,8 @@ start:
     mov ax, seg top
     mov ss, ax
     mov sp, offset top
+
+    call errorTabInit
     
     ; clear arithmetic registers
     xor ax, ax
@@ -315,7 +401,35 @@ start:
     xor dx, dx
     ret
   init endp
-  
+
+  errorTabInit proc
+  	push ax
+
+  	mov ax, offset e01h
+  	mov [errorPtr + 1], ax
+  	mov ax, offset e02h
+   	mov [errorPtr + 2], ax
+   	mov ax, offset e03h
+   	mov [errorPtr + 3], ax
+   	mov ax, offset e04h
+   	mov [errorPtr + 4], ax
+   	mov ax, offset e05h
+   	mov [errorPtr + 5], ax
+   	mov ax, offset e06h
+   	mov [errorPtr + 6], ax
+   	mov ax, offset e0Ch
+   	mov [errorPtr + 0Ch], ax
+   	mov ax, offset e56h
+   	mov [errorPtr + 56h], ax
+   	mov ax, offset argNumError
+   	mov [errorPtr + 0FFh], ax
+   	mov ax, offset optionError
+   	mov [errorPtr + 0FEh], ax
+
+  	pop ax
+  	ret
+  errorTabInit endp
+
   exit proc ; returns control to system
     mov ax, 4C00h
     int 21h
