@@ -1,19 +1,19 @@
 data segment
 ; Input
-  args            db 255 dup('$')   ; stores command line arguments
+  args            db 255 dup("$")   ; stores command line arguments
   argPtr          db 128 dup(0)   	; array of argument offsets
   argNum          db 0            	; stores number of arguments
 
 ; RLE
-	input						db 0							; input file name
-	output					db 0							; output file name
-	option-d				db 0 							; 0 if compressing input 1 if decompressig input
-	buffer					dq 2048 dup(?)
-	bufferSize			dw 2000h
-	bufferPtr				db 0
+	input						db 255 dup(0)			; input file name
+	output					db 255 dup(0)			; output file name
+	optiond					db 0 							; 0 if compressing input 1 if decompressig input
+	bufferSize			dw 2048
+	bufferPtr				dw 0
+	buffer					db 2048 dup("$")
 
 ; Error messages
-	errorPtr				db 255 dup(0)
+	errorPtr				dw 255 dup(0)
 	e01h						db "Invalid function number.","$"
 	e02h						db "Input file not found","$"
 	e03h						db "Path not found.","$"
@@ -23,7 +23,7 @@ data segment
 	e0Ch						db "Invalid access mode.","$"
 	e56h						db "Invalid password.","$"
 	argNumError			db "Invalid number of arguments. Usage: RLE [-d] input output","$"
-	optionError			db "Invalid option. Usage: TLE [-d] input output","$"
+	optionError			db "Invalid option. Usage: RLE [-d] input output","$"
 data ends
 
 .286
@@ -34,24 +34,39 @@ code segment
 start:
 	call init
 	call parseArgs
+	call checkArgs
 	call printArgs
+	mov dx, offset input
+	xor al, al
+	call open
+	mov dx, ax
+	call read
+	mov dx, offset buffer
+	call println
+
 	call exit
 
 	putChar proc
-	
 	putChar endp
 
 	getChar proc
 	; return AL = character
-		mov al, offset bufferPtr
-		cmp bufferPtr, al
+		push bx
+
+		mov bx, offset bufferPtr
+		cmp bufferPtr, bx
 		jne getBufferedChar
 
 		call read
+		mov bx, offset buffer
+		mov bufferPtr, bx
 
 		getBufferedChar:
-			mov al, [buffer + al]
+			mov bx, bufferPtr
+			mov al, byte ptr [buffer + bx]
 
+		pop bx
+		ret
 	getChar endp
 
 	read proc
@@ -68,8 +83,9 @@ start:
 		int 21h
 		jnc endRead
 
-		mov dx, ax
-		call printError
+		readFileError:
+			mov dx, ax
+			call printError
 
 		endRead:
 		pop dx
@@ -78,13 +94,16 @@ start:
 		ret
 	read endp
 
+	write proc
+	
+
+	write endp
+
 	open proc
-	; entry: DL = file name offset, AL = access mode 0 read only 1 write only
+	; entry: DX = file name offset, AL = access mode 0 read only 1 write only
 	; return: AX = file handle
-		push ax
 		push dx
 
-		xor dh, dh
 		mov ah, 3Dh
 		int 21h
 		jnc endOpenFile
@@ -97,7 +116,6 @@ start:
 		endOpenFile:
 
 		pop dx
-		pop ax
 		ret
 	open endp
 
@@ -123,9 +141,11 @@ start:
 			call getArg
 			mov bl, al
 			mov ax, word ptr ds:[bx]
-			cmp ax, "-d"
+			mov bl, "-"
+			mov bh, "d"
+			cmp ax, bx
 			jne wrongOption
-			mov option-d, 1
+			mov optiond, 1
 			jmp endCheckArgs
 
 		wrongArgNum:
@@ -136,12 +156,63 @@ start:
 			call printError
 
 		endCheckArgs:
+			call saveInput
 
 		pop dx
 		pop bx
 		pop ax	
 		ret
 	checkArgs endp
+
+	saveInput proc
+		push ax
+		push dx
+
+		xor ax, ax
+
+		mov dl, argNum
+		dec dl
+
+		call getArg
+		mov si, ax
+		mov di, offset output
+
+		call copy
+
+		dec dl
+		call getArg
+		mov si, ax
+		mov di, offset input
+		call copy
+
+		pop dx
+		pop ax
+		ret
+	saveInput endp
+
+	copy proc
+	; entry: SI = source index, DI = destination index
+		push ax
+		push si
+		push di
+
+		copyLoop:
+			mov al, ds:[si]
+			mov ds:[di], al
+			inc si
+			inc di
+			cmp al, "$"
+			jne copyLoop
+
+		dec di
+		mov al, 0
+		mov ds:[di], al
+
+		pop di
+		pop si
+		pop ax
+		ret
+	copy endp
 
 	parseArgs proc
     push ax
@@ -157,7 +228,7 @@ start:
     mov bx, es
     ; calculate offset between data segment argument segment
     sub ax, bx
-    shl ax, 4d
+    shl ax, 4
     ; add offset of arguments
     sub ax, 82h
     ; compare with number of characters entered
@@ -282,7 +353,7 @@ start:
     call getArg
     mov bl, al
     mov al, 1h
-    getChar:
+    getNextChar:
       ; go to next character 
       inc bx
       ; check for end of argument
@@ -292,7 +363,7 @@ start:
       je endGetArgLen
       ; else increment character counter and read next
       inc al
-      jmp getChar
+      jmp getNextChar
     
     endGetArgLen:
     
@@ -343,6 +414,7 @@ start:
 	printError proc
 	; entry: DX = error number
 		mov bx, dx
+		shl bx, 1
 		mov dx, [errorPtr + bx]
 		call println
 		call exit
@@ -393,6 +465,7 @@ start:
     mov sp, offset top
 
     call errorTabInit
+    call bufferInit
     
     ; clear arithmetic registers
     xor ax, ax
@@ -402,30 +475,55 @@ start:
     ret
   init endp
 
+  bufferInit proc
+  	push ax
+  	mov ax, offset buffer
+  	mov bufferPtr, ax
+  	pop ax
+  	ret
+  bufferInit endp
+
   errorTabInit proc
   	push ax
-
+  	push bx
+        
+    xor ax, ax
+    mov bx, 2    
   	mov ax, offset e01h
-  	mov [errorPtr + 1], ax
+  	mov [errorPtr + bx], ax
   	mov ax, offset e02h
-   	mov [errorPtr + 2], ax
+  	add bx, 2
+   	mov [errorPtr + bx], ax
    	mov ax, offset e03h
-   	mov [errorPtr + 3], ax
+   	add bx, 2
+   	mov [errorPtr + bx], ax
    	mov ax, offset e04h
-   	mov [errorPtr + 4], ax
+   	add bx, 2
+   	mov [errorPtr + bx], ax
    	mov ax, offset e05h
-   	mov [errorPtr + 5], ax
+   	add bx, 2
+   	mov [errorPtr + bx], ax
    	mov ax, offset e06h
-   	mov [errorPtr + 6], ax
+   	add bx, 2
+   	mov [errorPtr + bx], ax
    	mov ax, offset e0Ch
-   	mov [errorPtr + 0Ch], ax
+   	mov bx, 0Ch
+   	shl bx, 1
+   	mov [errorPtr + bx], ax
    	mov ax, offset e56h
-   	mov [errorPtr + 56h], ax
+   	mov bx, 56h
+   	shl bx, 1
+   	mov [errorPtr + bx], ax
    	mov ax, offset argNumError
-   	mov [errorPtr + 0FFh], ax
+   	mov bx, 0FFh
+   	shl bx, 1
+   	mov [errorPtr + bx], ax
    	mov ax, offset optionError
-   	mov [errorPtr + 0FEh], ax
+   	mov bx, 0FEh
+   	shl bx, 1
+   	mov [errorPtr + bx], ax
 
+   	pop bx
   	pop ax
   	ret
   errorTabInit endp
