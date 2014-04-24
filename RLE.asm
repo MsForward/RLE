@@ -44,29 +44,17 @@ start:
 	mov dx, offset buffer
 	call println
 
+	mov dx, offset output
+	call create
+	mov dx, ax
+	call write
+
 	call exit
 
 	putChar proc
 	putChar endp
 
 	getChar proc
-	; return AL = character
-		push bx
-
-		mov bx, offset bufferPtr
-		cmp bufferPtr, bx
-		jne getBufferedChar
-
-		call read
-		mov bx, offset buffer
-		mov bufferPtr, bx
-
-		getBufferedChar:
-			mov bx, bufferPtr
-			mov al, byte ptr [buffer + bx]
-
-		pop bx
-		ret
 	getChar endp
 
 	read proc
@@ -95,9 +83,47 @@ start:
 	read endp
 
 	write proc
-	
+	; entry: DX = file handle
+	; return: AX = number of bytes actually written
+		push ax
+		push bx
+		push cx
+		push dx
 
+		mov bx, dx
+		mov cx, bufferSize
+		mov dx, offset buffer
+		mov ah, 40h
+		int 21h
+
+		pop dx
+		pop cx
+		pop bx
+		pop ax
+		ret
 	write endp
+
+	create proc
+	; entry: DX = file name offset
+	; return: AX = file handle
+		push cx
+		push dx
+
+		xor cx, cx
+		mov ah, 3Ch
+		int 21h
+		jnc endcreateFile
+
+		createFileError:
+			mov dx, ax
+			call printError
+
+		endcreateFile:
+
+		pop dx
+		pop cx
+		ret
+	create endp
 
 	open proc
 	; entry: DX = file name offset, AL = access mode 0 read only 1 write only
@@ -111,13 +137,33 @@ start:
 		openFileError:
 			mov dx, ax
 			call printError
-			call exit
 
 		endOpenFile:
 
 		pop dx
 		ret
 	open endp
+
+	close proc
+	; entry: DX = file handle
+		push ax
+		push bx
+
+		mov bx, dx
+		mov ah, 3Eh
+		int 21h
+		jnc endCloseFile
+
+		closeFileError:
+			mov dx, ax
+			call printError
+
+		endCloseFile:
+
+		pop ax
+		pop bx
+		ret
+	close endp
 
 	checkArgs proc
 		push ax
