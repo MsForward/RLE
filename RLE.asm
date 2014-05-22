@@ -51,6 +51,12 @@ start:
 	call write
 
 	call exit
+	
+	compress proc
+	compress endp
+	
+	decompress proc
+	decompress endp
 
 	putChar proc
 	; entry: DX = file handle, AL = character to write
@@ -151,6 +157,9 @@ start:
 			call printError
 
 		endWrite:
+		mov bx, offset buffer
+		mov bufferPtr, bx
+		
 		pop dx
 		pop cx
 		pop bx
