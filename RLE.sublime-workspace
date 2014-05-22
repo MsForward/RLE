@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"inc",
+				"increment"
+			],
+			[
+				"count",
+				"countCharLoop"
+			],
+			[
+				"exi",
+				"exits"
+			],
+			[
 				"merge",
 				"mergesort"
 			],
@@ -55,7 +67,14 @@
 			"file": "RLE.asm",
 			"settings":
 			{
-				"buffer_size": 4972,
+				"buffer_size": 9315,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"settings":
+			{
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		}
@@ -116,6 +135,9 @@
 	},
 	"file_history":
 	[
+		"/home/beatka/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
+		"/home/beatka/Beatka/AGH/Asemblery/RLE/RLE.asm",
+		"/home/beatka/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
 		"/home/beatka/Temp/linux_mbb_install/mbbservice.bin",
 		"/home/beatka/Beatka/AGH/Asemblery/SSHKey/SSHKey.asm",
 		"/home/beatka/.minecraft/saves/ComputerCraft Lab-/computer/109/got",
@@ -133,8 +155,6 @@
 		"/home/beatka/.minecraft/shaderpacks/SEUS Standard/shaders/composite.vsh",
 		"/home/beatka/Beatka/AGH/Logika/lab1/part_one/sources.cm",
 		"/home/beatka/dht.dat",
-		"/home/beatka/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
-		"/home/beatka/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
 		"/home/beatka/.config/sublime-text-3/Packages/Lua Dev/Lua Dev.sublime-settings",
 		"/home/beatka/Beatka/Web Design/projects/TravelInfo/index.html",
 		"/tmp/fz3temp-1/recyclingDeclaration.php",
@@ -182,7 +202,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -191,20 +211,47 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4972,
+						"buffer_size": 9315,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								513,
-								513
+								4305,
+								4305
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/MasmAssembly/MasmAssembly.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 4455.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,

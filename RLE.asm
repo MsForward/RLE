@@ -1,7 +1,7 @@
 data segment
 ; Input
   args            db 255 dup("$")   ; stores command line arguments
-  argPtr          db 128 dup(0)   	; array of argument offsets
+  argPtr          dw 128 dup(0)   	; array of argument offsets
   argNum          db 0            	; stores number of arguments
 
 ; RLE
@@ -12,7 +12,7 @@ data segment
 	bufferPtr				dw 0
 	buffer					db 2048 dup("$")
 
-; Error messages
+; Error messages 
 	errorPtr				dw 255 dup(0)
 	e01h						db "Invalid function number.","$"
 	e02h						db "Input file not found","$"
@@ -52,9 +52,29 @@ start:
 	call exit
 
 	putChar proc
+
 	putChar endp
 
 	getChar proc
+	; entry: DX = file handle
+	; return: AL = next character from file
+		push bx
+
+		mov bx, offset buffer
+		add bx, bufferSize
+		cmp bx, bufferPtr
+		je readFromFile
+
+		mov bx, bufferPtr
+		mov al, [buffer + bx]
+		jmp endGetChar
+
+		readFromFile:
+			call read
+
+		endGetChar:
+		pop bx
+		ret
 	getChar endp
 
 	read proc
@@ -64,14 +84,19 @@ start:
 		push cx
 		push dx
 
+		; CX = number of bytes to read
 		mov cx, bufferSize
+		; BX = file handle
 		mov bx, dx
+		; DS:[DX] = data save location
 		mov dx, offset buffer
 		mov ah, 3Fh
 		int 21h
+		; check for errors
 		jnc endRead
 
 		readFileError:
+			; DX = error number
 			mov dx, ax
 			call printError
 
@@ -90,12 +115,23 @@ start:
 		push cx
 		push dx
 
+		; BX = file handle
 		mov bx, dx
+		; CX = number of bytes to write
 		mov cx, bufferSize
+		; DS:[DX] = location of bytes to write
 		mov dx, offset buffer
 		mov ah, 40h
 		int 21h
+		; check for errors
+		jnc endWrite
 
+		writeToFileError:
+			; DX = error number
+			mov dx, ax
+			call printError
+
+		endWrite:
 		pop dx
 		pop cx
 		pop bx
@@ -269,23 +305,6 @@ start:
     mov di, offset args
     mov cl, byte ptr es:[80h] ; number of characters entered
     
-    ; check if command line should be truncated 
-    mov ax, ds
-    mov bx, es
-    ; calculate offset between data segment argument segment
-    sub ax, bx
-    shl ax, 4
-    ; add offset of arguments
-    sub ax, 82h
-    ; compare with number of characters entered
-    cmp cl, al
-    jle validLength
-    
-    ; read only characters that are available
-    mov cl, al
-    
-    validLength:
-    
     ; clear argument counter
     xor bx, bx
     
@@ -294,12 +313,12 @@ start:
     cmp cx, 0
     je endParseArgs
     
-    readLoop:
+    parseArgsLoop:
       call readArg
       call removeWhitespace
       
       cmp cx, 0
-      jg readLoop
+      jg parseArgsLoop
     
     ; save number of arguments
     endParseArgs:
@@ -328,8 +347,8 @@ start:
       ret
 	removeWhitespace endp
 
-	readArg proc
-    
+	readArg proc ; saves one command line argument
+	; entry: 
     call putAddress
     raLoop:
       ; read next character
@@ -362,64 +381,57 @@ start:
       ret
 	readArg endp        
 
-	putAddress proc
+	putAddress proc ; saves pointer to argument
+	; entry: DL = argument index, DI = argument offset
 	    push bx
 	    
-	    ; bl contains number of arguments
-	    xor bh, bh        
-	    mov word ptr ds:[argPtr + bx], di
+	    mov bl, dl
+	    mov word ptr [argPtr + bl], di
 	    
 	    pop bx
 	    ret
 	putAddress endp
 
-	getArg proc
+	getArg proc ; returns argument offset
 	; entry: DL = argument index 
-	; return: AL = argument offset
- 
+	; return: AX = argument offset
     push bx
-    xor bx, bx
     
     mov bl, dl 
-    mov al, [argPtr + bx] 
+    mov ax, word ptr [argPtr + bl] 
     
     pop bx
     ret
 	getArg endp
 
-	getArgLen proc 
+	getArgLen proc ; return length of argument with given index
 	; entry : DL = argument index
 	; return: AL = argument length
-
-    push bx   
-    
-    ; clear address storage
+    push bx
     xor bx, bx
-    ; dl stores argument index
+
+    push ax
+    ; get argument offset
     call getArg
-    mov bl, al
-    mov al, 1h
-    getNextChar:
-      ; go to next character 
-      inc bx
-      ; check for end of argument
-      cmp byte ptr ds:[bx], '$'
-      
-      ; return if encountered end of string
-      je endGetArgLen
-      ; else increment character counter and read next
-      inc al
-      jmp getNextChar
-    
-    endGetArgLen:
+    mov bx, ax
+    pop ax
+
+    xor al, al
+    countCharLoop:
+    	; increment counter
+    	inc al
+ 			; read next character
+    	inc bx
+      ; check if argument ends
+      cmp byte ptr ds:[bx], "$"
+      jne countCharLoop
     
     pop bx
     ret
 	getArgLen endp
 
-	getArgNum proc
+	getArgNum proc ; returns number of program arguments
 	; return: AL = number of arguments
-
     mov al, argNum
     ret
 	getArgNum endp
@@ -429,13 +441,14 @@ start:
     push cx
     push dx
     
-    xor cx, cx
-    ; prints one argument
-    printLoop:
-      ; check for next argument
+    ; start with argument 0
+    xor cl, cl
+
+    printArgLoop:
+      ; check if argument exists
       cmp cl, argNum
       ; if no arguments left return
-      je endPrintLoop
+      je endPrintArgs
       
       ; get argument address
       mov dl, cl
@@ -443,13 +456,12 @@ start:
       ; print argument to console
       mov dl, al
       call println
-      ; print line break
-      call crlf
       
+      ; go to next argument
       inc cl
-      jmp printLoop
+      jmp printArgLoop
         
-    endPrintLoop:
+    endPrintArgs:
     
     pop dx
     pop cx
@@ -457,7 +469,7 @@ start:
     ret
 	printArgs endp
 
-	printError proc
+	printError proc ; writes error to console and exits program
 	; entry: DX = error number
 		mov bx, dx
 		shl bx, 1
@@ -467,15 +479,27 @@ start:
 		ret
 	printError endp
 
-	println proc
+	println proc ; writes single line to console
+	; entry: DX = string offset
     push ax
     mov ah, 9h
     int 21h
+    call crlf
     pop ax
     ret
   println endp
+
+  print proc ; writes string in DS:DX to console
+  ; entry: DX = string offset
+  	push ax
+  	mov ah, 9h
+  	call 21h
+  	pop ax
+  	ret
+  print endp
   
-  printChar proc
+  printChar proc ; writes single character to console
+  ; entry: DL = character to write
     push ax
     mov ah, 2h
     int 21h
@@ -487,11 +511,11 @@ start:
     push ax
     push dx
     
-    ; prints new line
+    ; print new line
     mov dl, 0Ah
     mov ah, 2h
     int 21h
-    ; prints carriage return
+    ; print carriage return
     mov dl, 0Dh
     int 21h 
     
@@ -521,7 +545,7 @@ start:
     ret
   init endp
 
-  bufferInit proc
+  bufferInit proc ; moves buffer pointer to beginning of buffer
   	push ax
   	mov ax, offset buffer
   	mov bufferPtr, ax
@@ -529,7 +553,7 @@ start:
   	ret
   bufferInit endp
 
-  errorTabInit proc
+  errorTabInit proc ; creates array of pointers to error messages 
   	push ax
   	push bx
         
