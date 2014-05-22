@@ -7,9 +7,10 @@ data segment
 ; RLE
 	input						db 255 dup(0)			; input file name
 	output					db 255 dup(0)			; output file name
-	optiond					db 0 							; 0 if compressing input 1 if decompressig input
+	optiond					db 0 							; 0 if compressing input 1 if decompressing input
 	bufferSize			dw 2048
 	bufferPtr				dw 0
+	bufferEndPtr		dw 0
 	buffer					db 2048 dup("$")
 
 ; Error messages 
@@ -52,34 +53,46 @@ start:
 	call exit
 
 	putChar proc
-
+	; entry: DX = file handle, AL = character to write
+		push bx
+		
+		; check if space left in buffer
+		mov bx, bufferPtr
+		cmp bx, bufferEndPtr
+		je writeToFile
+	
 	putChar endp
 
 	getChar proc
 	; entry: DX = file handle
-	; return: AL = next character from file
+	; return: AL = next character from file, AH = 0 if no more characters left
 		push bx
 
-		mov bx, offset buffer
-		add bx, bufferSize
-		cmp bx, bufferPtr
-		je readFromFile
-
+		xor ah, ah
+		; check if there are characters left in buffer
 		mov bx, bufferPtr
-		mov al, [buffer + bx]
-		jmp endGetChar
+		cmp bx, bufferEndPtr
+		je readFromFile
+		jmp returnChar
 
 		readFromFile:
 			call read
+			cmp bx, bufferEndPtr
+			je endGetChar
 
-		endGetChar:
+		returnChar:
+			mov al, [buffer + bx]
+			inc bufferPtr
+			mov ah, 1
+			
+		endGetChar:	
 		pop bx
 		ret
 	getChar endp
 
 	read proc
 	; entry: DX = file handle
-	; return: AX = number of bytes actually read
+		push ax
 		push bx
 		push cx
 		push dx
@@ -99,17 +112,23 @@ start:
 			; DX = error number
 			mov dx, ax
 			call printError
+			
+		; AX = number of bytes actually read
+		mov bx, offset buffer
+		mov bufferPtr, bx
+		add bx, ax
+		mov bufferEndPtr, bx
 
 		endRead:
 		pop dx
 		pop cx
 		pop bx
+		pop ax
 		ret
 	read endp
 
 	write proc
 	; entry: DX = file handle
-	; return: AX = number of bytes actually written
 		push ax
 		push bx
 		push cx
