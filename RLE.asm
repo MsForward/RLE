@@ -9,8 +9,9 @@ data segment
 	output					db 255 dup(0)			; output file name
 	optiond					db 0 							; 0 if compressing input 1 if decompressig input
 	bufferSize			dw 2048
-	bufferPtr				dw 0
-	buffer					db 2048 dup("$")
+	inputBufferPtr	dw 0
+	inputBuffer			db 2048 dup("$")
+	
 
 ; Error messages 
 	errorPtr				dw 255 dup(0)
@@ -51,13 +52,51 @@ start:
 
 	call exit
 
+	compress proc
+		push ax
+		push bx
+		push cx
+		push dx
+
+		mov dx, offset input
+		; open input file in read mode
+		xor al, al
+		call open
+		; AX = file handle
+		mov dx, ax
+
+		call getChar
+		cmp ah, 0
+		je endCompressLoop
+		mov bl, al
+
+		compressLoop:
+			call getChar
+			cmp ah, 0
+			je endCompressLoop
+			cmp al, bl
+			je addChar
+			jne 
+
+			addChar:
+				inc cx
+
+		endCompressLoop:
+
+		pop dx
+		pop cx
+		pop bx
+		pop ax
+		ret
+	compress endp
+
 	putChar proc
 
 	putChar endp
 
 	getChar proc
 	; entry: DX = file handle
-	; return: AL = next character from file
+	; return: AL = next character from file, AH = 0 if no characters left
 		push bx
 
 		mov bx, offset buffer

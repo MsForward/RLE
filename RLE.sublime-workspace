@@ -67,7 +67,7 @@
 			"file": "RLE.asm",
 			"settings":
 			{
-				"buffer_size": 9315,
+				"buffer_size": 9953,
 				"line_ending": "Unix"
 			}
 		},
@@ -211,15 +211,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9315,
+						"buffer_size": 9953,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4305,
-								4305
+								0,
+								0
 							]
 						],
 						"settings":
