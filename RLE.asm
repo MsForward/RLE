@@ -5,9 +5,9 @@ data segment
   argNum          		db 0            	; stores number of arguments
 
 ; RLE
-	input								db 255 dup(0)			; input file name
+	inputName						db 255 dup(0)			; input file name
 	inputFile						dw ?							; input file handle
-	output							db 255 dup(0)			; output file name
+	outputName					db 255 dup(0)			; output file name
 	outputFile					db ?							; output file handle
 	optiond							db 0 							; 0 if compressing input 1 if decompressing input
 	bufferSize					dw 2048
@@ -50,12 +50,6 @@ start:
 		push cx
 		push dx
 
-		mov dx, offset input
-		; open input file in read mode
-		xor al, al
-		call open
-		mov dx, ax
-
 		call getChar
 		cmp ah, 0
 		je endCompressLoop
@@ -97,27 +91,27 @@ start:
 	decompress endp
 
 	convertChar proc
-	; entry: AL = character, CL = number of occurences, DX = file handle
-		push ax
-		cmp al, 0
+	; entry: DL = character, CL = number of occurences
+		push dx
+		cmp dl, 0
 		je RLE
 		cmp cl, 3
 		jle saveChar
 
 		RLE:
-			mov al, 0
+			mov dl, 0
 			call putChar
-			mov al, cl
+			mov dl, cl
 			call putChar
 
 		saveChar:
-			pop ax
+			pop dx
 			call putChar
 		ret
 	convertChar endp
 
 	putChar proc
-	; entry: DX = file handle, AL = character to write
+	; DL = character to write
 		push bx
 		
 		; check if space left in buffer
@@ -128,7 +122,6 @@ start:
 	putChar endp
 
 	getChar proc
-	; entry: DX = file handle
 	; return: AL = next character from file, AH = 0 if no characters left
 		push bx
 
@@ -155,7 +148,6 @@ start:
 	getChar endp
 
 	read proc
-	; entry: DX = file handle
 		push ax
 		push bx
 		push cx
@@ -164,7 +156,7 @@ start:
 		; CX = number of bytes to read
 		mov cx, bufferSize
 		; BX = file handle
-		mov bx, dx
+		mov bx, inputFile
 		; DS:[DX] = data save location
 		mov dx, offset buffer
 		mov ah, 3Fh
@@ -192,14 +184,13 @@ start:
 	read endp
 
 	write proc
-	; entry: DX = file handle
 		push ax
 		push bx
 		push cx
 		push dx
 
 		; BX = file handle
-		mov bx, dx
+		mov bx, outputFile
 		; CX = number of bytes to write
 		mov cx, bufferSize
 		; DS:[DX] = location of bytes to write
@@ -343,14 +334,14 @@ start:
 
 		call getArg
 		mov si, ax
-		mov di, offset output
+		mov di, offset outputName
 
 		call copy
 
 		dec dl
 		call getArg
 		mov si, ax
-		mov di, offset input
+		mov di, offset inputName
 		call copy
 
 		pop dx
@@ -622,6 +613,7 @@ start:
 
     call errorTabInit
     call bufferInit
+    call fileInit
     
     ; clear arithmetic registers
     xor ax, ax
@@ -631,10 +623,33 @@ start:
     ret
   init endp
 
+  fileInit proc
+  	push ax
+  	push dx
+
+  	mov dx, offset inputName
+		; open input file in read mode
+		xor al, al
+		call open
+		mov inputFile, ax
+
+		mov dx, offset outputName
+		; open output file in write mode
+		mov al, 1
+		call open
+		mov outputFile, ax
+
+		pop dx
+		pop ax
+		ret
+  fileInit endp
+
   bufferInit proc ; moves buffer pointer to beginning of buffer
   	push ax
-  	mov ax, offset buffer
-  	mov bufferPtr, ax
+  	mov ax, offset inputBuffer
+  	mov inputBufferPtr, ax
+  	mov ax, offset outputBuffer
+  	mov outputBufferPtr, ax
   	pop ax
   	ret
   inputBufferInit endp
