@@ -47,6 +47,8 @@ start:
 	call init
 	call parseArgs
 	call checkArgs
+	call printArgs
+	call fileInit
 
 	cmp optiond, 0
 	je runC
@@ -712,7 +714,6 @@ start:
 
     call errorTabInit
     call bufferInit
-    call fileInit
     
     ; clear arithmetic registers
     xor ax, ax
