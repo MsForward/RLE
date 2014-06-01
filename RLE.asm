@@ -187,11 +187,25 @@ start:
 		mov bx, outputBufferPtr
 		cmp bx, outputBufferEndPtr
 		je writeToFile
-	
+		jne putToBuffer
+
+		writeToFile:
+			call write
+
+		writeToBuffer:
+			; save character to buffer
+			mov [buffer + bx], dl
+			inc outputBufferPtr
+			jmp endPutChar
+
+		endPutChar:
+		pop bx
+		ret
 	putChar endp
 
 	forceWrite proc
-
+		call write
+		ret
 	forceWrite endp
 
 	getChar proc
@@ -203,7 +217,7 @@ start:
 		mov bx, inputBufferPtr
 		cmp bx, inputBufferEndPtr
 		je readFromFile
-		jmp returnChar
+		jne returnChar
 
 		readFromFile:
 			call read
@@ -231,7 +245,7 @@ start:
 		; BX = file handle
 		mov bx, inputFile
 		; DS:[DX] = data save location
-		mov dx, offset buffer
+		mov dx, offset inputBuffer
 		mov ah, 3Fh
 		int 21h
 		; check for errors
@@ -243,10 +257,10 @@ start:
 			call printError
 			
 		; AX = number of bytes actually read
-		mov bx, offset buffer
-		mov bufferPtr, bx
+		mov bx, offset inputBuffer
+		mov inputBufferPtr, bx
 		add bx, ax
-		mov bufferEndPtr, bx
+		mov inputBufferEndPtr, bx
 
 		endRead:
 		pop dx
@@ -264,11 +278,11 @@ start:
 
 		; BX = file handle
 		mov bx, outputFile
-		; CX = number of bytes to write
-		mov cx, outputBufferEndPtr
-		sub cx, offset outputBuffer
 		; DS:[DX] = location of bytes to write
 		mov dx, offset outputBuffer
+		; CX = number of bytes to write
+		mov cx, outputBufferPtr
+		sub cx, dx
 		mov ah, 40h
 		int 21h
 		; check for errors
@@ -280,8 +294,8 @@ start:
 			call printError
 
 		endWrite:
-		mov bx, offset buffer
-		mov bufferPtr, bx
+		mov bx, offset outputBuffer
+		mov outputBufferPtr, bx
 		
 		pop dx
 		pop cx
@@ -722,8 +736,13 @@ start:
   	push ax
   	mov ax, offset inputBuffer
   	mov inputBufferPtr, ax
+  	mov inputBufferEndPtr, ax
+
   	mov ax, offset outputBuffer
   	mov outputBufferPtr, ax
+  	add ax, bufferSize
+  	mov outputBufferEndPtr, ax
+
   	pop ax
   	ret
   inputBufferInit endp
@@ -773,7 +792,11 @@ start:
   	ret
   errorTabInit endp
 
-  exit proc ; returns control to system
+  exit proc ; returns control to system\
+  	mov dx, inputFile
+  	call close
+  	mov dx, outputFile
+  	call close
     mov ax, 4C00h
     int 21h
   exit endp
