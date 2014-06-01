@@ -4,17 +4,23 @@ data segment
   argPtr         			dw 128 dup(0)   	; array of argument offsets
   argNum          		db 0            	; stores number of arguments
 
-; RLE
+; File data
 	inputName						db 255 dup(0)			; input file name
 	inputFile						dw ?							; input file handle
+
 	outputName					db 255 dup(0)			; output file name
 	outputFile					db ?							; output file handle
+
 	optiond							db 0 							; 0 if compressing input 1 if decompressing input
+
+; Buffer data
 	bufferSize					dw 2048
-	inputBuffer					db 2048 dup("$")
+
+	inputBuffer					db 2048 dup(?)
 	inputBufferPtr			dw 0
 	inputBufferEndPtr		dw 0
-	outputBuffer				db 2048 dup("$")
+
+	outputBuffer				db 2048 dup(?)
 	outputBufferPtr			dw 0
 	outputBufferEndPtr	dw 0
 
@@ -50,6 +56,7 @@ start:
 		push cx
 		push dx
 
+		; get first character
 		call getChar
 		cmp ah, 0
 		je endCompressLoop
@@ -57,22 +64,27 @@ start:
 		mov cx, 1
 
 		compressLoop:
+			; get character
 			call getChar
+			; if file empty return
 			cmp ah, 0
 			je endCompressLoop
+			; check for previous character repeated
 			cmp al, bl
 			je addChar
 			
+			; if new char, compress previous char
 			compressChar:
 				push ax
 				mov al, bl
-				call convertChar
+				call charToSeq
 				mov cx, 1
 				pop ax
 				mov bl, al
 				jmp compressLoop
 
 			addChar:
+				; increment char occurence counter
 				inc cx
 				jmp compressLoop
 
@@ -87,10 +99,47 @@ start:
 	compress endp
 
 	decompress proc
+		push ax
+		push bx
+		push cx
+		push dx
 
+		; get first character
+		call getChar
+		cmp ah, 0
+		je endDecompressLoop
+		mov bl, al
+		mov cx, 1
+
+		decompressLoop:
+			; get character
+			call getChar
+			; if file empty return
+			cmp ah, 0
+			je endDecompressLoop
+			cmp al, 0
+			je decompressChar
+			call seqToChar
+			jmp decompressLoop
+
+			decompressChar:
+				call readSeq
+				mov dl, al
+				call seqToChar
+				mov cx, 1
+				jmp decompressLoop
+
+		endDecompressLoop:
+		call forceWrite
+
+		pop dx
+		pop cx
+		pop bx
+		pop ax
+		ret
 	decompress endp
 
-	convertChar proc
+	charToSeq proc
 	; entry: DL = character, CL = number of occurences
 		push dx
 		cmp dl, 0
@@ -108,7 +157,27 @@ start:
 			pop dx
 			call putChar
 		ret
-	convertChar endp
+	charToSeq endp
+	
+	readSeq proc
+	; return: AL = character, CL = number of occurences
+		call getChar
+		push ax
+		call getChar
+		mov cl, al
+		pop ax
+		ret
+	readSeq endp
+
+	seqToChar proc
+	; entry: DL = character, CL = number of occurences
+		stcLoop:
+			call putChar
+			dec cl
+			cmp cl, 0
+			jg stcLoop
+		ret
+	seqToChar endp
 
 	putChar proc
 	; DL = character to write
@@ -120,6 +189,10 @@ start:
 		je writeToFile
 	
 	putChar endp
+
+	forceWrite proc
+
+	forceWrite endp
 
 	getChar proc
 	; return: AL = next character from file, AH = 0 if no characters left
@@ -192,9 +265,10 @@ start:
 		; BX = file handle
 		mov bx, outputFile
 		; CX = number of bytes to write
-		mov cx, bufferSize
+		mov cx, outputBufferEndPtr
+		sub cx, offset outputBuffer
 		; DS:[DX] = location of bytes to write
-		mov dx, offset buffer
+		mov dx, offset outputBuffer
 		mov ah, 40h
 		int 21h
 		; check for errors
