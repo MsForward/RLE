@@ -6,10 +6,10 @@ data segment
 
 ; File data
 	inputName						db 255 dup(0)			; input file name
-	inputFile						dw ?							; input file handle
+	inputFile						dw 0							; input file handle
 
 	outputName					db 255 dup(0)			; output file name
-	outputFile					db ?							; output file handle
+	outputFile					dw 0							; output file handle
 
 	optiond							db 0 							; 0 if compressing input 1 if decompressing input
 
@@ -47,8 +47,17 @@ start:
 	call init
 	call parseArgs
 	call checkArgs
-	call printArgs
-	call exit
+
+	cmp optiond, 0
+	je runC
+	jne runD
+
+	runC: 
+		call compress
+		call exit
+	runD: 
+		call decompress
+		call exit
 
 	compress proc
 		push ax
@@ -187,14 +196,14 @@ start:
 		mov bx, outputBufferPtr
 		cmp bx, outputBufferEndPtr
 		je writeToFile
-		jne putToBuffer
+		jne writeToBuffer
 
 		writeToFile:
 			call write
 
 		writeToBuffer:
 			; save character to buffer
-			mov [buffer + bx], dl
+			mov [outputBuffer + bx], dl
 			inc outputBufferPtr
 			jmp endPutChar
 
@@ -349,6 +358,9 @@ start:
 	; entry: DX = file handle
 		push ax
 		push bx
+
+		cmp dx, 0
+		je endCloseFile
 
 		mov bx, dx
 		mov ah, 3Eh
@@ -549,9 +561,9 @@ start:
 	putAddress proc ; saves pointer to argument
 	; entry: DL = argument index, DI = argument offset
 	    push bx
-	    
+	    xor bx, bx
 	    mov bl, dl
-	    mov word ptr [argPtr + bl], di
+	    mov [argPtr + bx], di
 	    
 	    pop bx
 	    ret
@@ -561,9 +573,9 @@ start:
 	; entry: DL = argument index 
 	; return: AX = argument offset
     push bx
-    
+    xor bx, bx
     mov bl, dl 
-    mov ax, word ptr [argPtr + bl] 
+    mov ax, [argPtr + bx] 
     
     pop bx
     ret
@@ -641,7 +653,6 @@ start:
 		mov dx, [errorPtr + bx]
 		call println
 		call exit
-		ret
 	printError endp
 
 	println proc ; writes single line to console
@@ -658,7 +669,7 @@ start:
   ; entry: DX = string offset
   	push ax
   	mov ah, 9h
-  	call 21h
+  	int 21h
   	pop ax
   	ret
   print endp
@@ -722,6 +733,8 @@ start:
 		mov inputFile, ax
 
 		mov dx, offset outputName
+		; create output file
+		call create
 		; open output file in write mode
 		mov al, 1
 		call open
@@ -745,7 +758,7 @@ start:
 
   	pop ax
   	ret
-  inputBufferInit endp
+  bufferInit endp
 
   errorTabInit proc ; creates array of pointers to error messages 
   	push ax
@@ -792,7 +805,7 @@ start:
   	ret
   errorTabInit endp
 
-  exit proc ; returns control to system\
+  exit proc ; returns control to system
   	mov dx, inputFile
   	call close
   	mov dx, outputFile
