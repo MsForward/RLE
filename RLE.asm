@@ -1,18 +1,22 @@
 data segment
 ; Input
-  args            db 255 dup("$")   ; stores command line arguments
-  argPtr          dw 128 dup(0)   	; array of argument offsets
-  argNum          db 0            	; stores number of arguments
+  args            		db 255 dup("$")   ; stores command line arguments
+  argPtr         			dw 128 dup(0)   	; array of argument offsets
+  argNum          		db 0            	; stores number of arguments
 
 ; RLE
-	input						db 255 dup(0)			; input file name
-	output					db 255 dup(0)			; output file name
-	optiond					db 0 							; 0 if compressing input 1 if decompressing input
-	bufferSize			dw 2048
-	inputBufferPtr	dw 0
-	inputBuffer			db 2048 dup("$")
+	input								db 255 dup(0)			; input file name
+	inputFile						dw ?							; input file handle
+	output							db 255 dup(0)			; output file name
+	outputFile					db ?							; output file handle
+	optiond							db 0 							; 0 if compressing input 1 if decompressing input
+	bufferSize					dw 2048
+	inputBuffer					db 2048 dup("$")
+	inputBufferPtr			dw 0
 	inputBufferEndPtr		dw 0
-	buffer					db 2048 dup("$")
+	outputBuffer				db 2048 dup("$")
+	outputBufferPtr			dw 0
+	outputBufferEndPtr	dw 0
 
 ; Error messages 
 	errorPtr				dw 255 dup(0)
@@ -38,26 +42,7 @@ start:
 	call parseArgs
 	call checkArgs
 	call printArgs
-	mov dx, offset input
-	xor al, al
-	call open
-	mov dx, ax
-	call read
-	mov dx, offset buffer
-	call println
-
-	mov dx, offset output
-	call create
-	mov dx, ax
-	call write
-
 	call exit
-	
-	compress proc
-	compress endp
-	
-	decompress proc
-	decompress endp
 
 	compress proc
 		push ax
@@ -69,13 +54,13 @@ start:
 		; open input file in read mode
 		xor al, al
 		call open
-		; AX = file handle
 		mov dx, ax
 
 		call getChar
 		cmp ah, 0
 		je endCompressLoop
 		mov bl, al
+		mov cx, 1
 
 		compressLoop:
 			call getChar
@@ -83,12 +68,22 @@ start:
 			je endCompressLoop
 			cmp al, bl
 			je addChar
-			jne 
+			
+			compressChar:
+				push ax
+				mov al, bl
+				call convertChar
+				mov cx, 1
+				pop ax
+				mov bl, al
+				jmp compressLoop
 
 			addChar:
 				inc cx
+				jmp compressLoop
 
 		endCompressLoop:
+		call forceWrite
 
 		pop dx
 		pop cx
@@ -97,13 +92,37 @@ start:
 		ret
 	compress endp
 
+	decompress proc
+
+	decompress endp
+
+	convertChar proc
+	; entry: AL = character, CL = number of occurences, DX = file handle
+		push ax
+		cmp al, 0
+		je RLE
+		cmp cl, 3
+		jle saveChar
+
+		RLE:
+			mov al, 0
+			call putChar
+			mov al, cl
+			call putChar
+
+		saveChar:
+			pop ax
+			call putChar
+		ret
+	convertChar endp
+
 	putChar proc
 	; entry: DX = file handle, AL = character to write
 		push bx
 		
 		; check if space left in buffer
-		mov bx, bufferPtr
-		cmp bx, bufferEndPtr
+		mov bx, outputBufferPtr
+		cmp bx, outputBufferEndPtr
 		je writeToFile
 	
 	putChar endp
@@ -115,19 +134,19 @@ start:
 
 		xor ah, ah
 		; check if there are characters left in buffer
-		mov bx, bufferPtr
-		cmp bx, bufferEndPtr
+		mov bx, inputBufferPtr
+		cmp bx, inputBufferEndPtr
 		je readFromFile
 		jmp returnChar
 
 		readFromFile:
 			call read
-			cmp bx, bufferEndPtr
+			cmp bx, inputBufferEndPtr
 			je endGetChar
 
 		returnChar:
-			mov al, [buffer + bx]
-			inc bufferPtr
+			mov al, [inputBuffer + bx]
+			inc inputBufferPtr
 			mov ah, 1
 			
 		endGetChar:	
@@ -618,7 +637,7 @@ start:
   	mov bufferPtr, ax
   	pop ax
   	ret
-  bufferInit endp
+  inputBufferInit endp
 
   errorTabInit proc ; creates array of pointers to error messages 
   	push ax
