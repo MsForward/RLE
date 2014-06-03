@@ -4,6 +4,86 @@
 		"selected_items":
 		[
 			[
+				"output",
+				"outputBuffer"
+			],
+			[
+				"input",
+				"inputBuffer"
+			],
+			[
+				"print",
+				"printChar"
+			],
+			[
+				"outpu",
+				"outputName"
+			],
+			[
+				"out",
+				"outputName"
+			],
+			[
+				"inp",
+				"inputName"
+			],
+			[
+				"inpt",
+				"inputFile"
+			],
+			[
+				"decom",
+				"decompress"
+			],
+			[
+				"compre",
+				"compress"
+			],
+			[
+				"buffer",
+				"bufferSize"
+			],
+			[
+				"bu",
+				"outputBuffer"
+			],
+			[
+				"read",
+				"readSeq"
+			],
+			[
+				"deco",
+				"decompressLoop"
+			],
+			[
+				"char",
+				"charToSeq"
+			],
+			[
+				"occure",
+				"occurences"
+			],
+			[
+				"character",
+				"character"
+			],
+			[
+				"oup",
+				"outputBuffer"
+			],
+			[
+				"inpu",
+				"inputBufferEndPtr"
+			],
+			[
+				"inputBu",
+				"inputBufferPtr"
+			],
+			[
+				"get",
+				"getChar"
+			],
+			[
 				"inc",
 				"increment"
 			],
@@ -67,14 +147,7 @@
 			"file": "RLE.asm",
 			"settings":
 			{
-				"buffer_size": 9953,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"settings":
-			{
-				"buffer_size": 0,
+				"buffer_size": 13414,
 				"line_ending": "Unix"
 			}
 		}
@@ -82,7 +155,7 @@
 	"build_system": "Packages/Lua Dev/Lua.sublime-build",
 	"command_palette":
 	{
-		"height": 306.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
@@ -114,7 +187,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 476.0
+		"width": 647.0
 	},
 	"console":
 	{
@@ -135,6 +208,7 @@
 	},
 	"file_history":
 	[
+		"/home/beatka/Beatka/AGH/Elektronika/Lab3/Konspekt/WzmacniaczKonspekt.tex",
 		"/home/beatka/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
 		"/home/beatka/Beatka/AGH/Asemblery/RLE/RLE.asm",
 		"/home/beatka/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
@@ -170,7 +244,7 @@
 	],
 	"find":
 	{
-		"height": 25.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
@@ -184,6 +258,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"printErr",
+			"convertChar",
+			"output",
+			"input",
+			"ax",
+			"buffer",
 			"y"
 		],
 		"highlight": true,
@@ -192,6 +272,10 @@
 		"regex": false,
 		"replace_history":
 		[
+			"charToSeq",
+			"outputName",
+			"inputName",
+			"inputBuffer"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -202,7 +286,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -211,15 +295,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9953,
+						"buffer_size": 13414,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								1844,
+								1844
 							]
 						],
 						"settings":
@@ -227,34 +311,7 @@
 							"syntax": "Packages/MasmAssembly/MasmAssembly.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 4455.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1275.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -305,7 +362,7 @@
 	"project": "RLE.sublime-project",
 	"replace":
 	{
-		"height": 46.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":

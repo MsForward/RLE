@@ -17,10 +17,12 @@ data segment
 	bufferSize					dw 2048
 
 	inputBuffer					db 2048 dup(?)
+											db "$"
 	inputBufferPtr			dw 0
 	inputBufferEndPtr		dw 0
 
 	outputBuffer				db 2048 dup(?)
+											db "$"
 	outputBufferPtr			dw 0
 	outputBufferEndPtr	dw 0
 
@@ -193,6 +195,7 @@ start:
 	putChar proc
 	; DL = character to write
 		push bx
+		call printChar
 		
 		; check if space left in buffer
 		mov bx, outputBufferPtr
@@ -204,6 +207,7 @@ start:
 			call write
 
 		writeToBuffer:
+			mov bx, outputBufferPtr
 			; save character to buffer
 			mov [outputBuffer + bx], dl
 			inc outputBufferPtr
@@ -222,6 +226,7 @@ start:
 	getChar proc
 	; return: AL = next character from file, AH = 0 if no characters left
 		push bx
+		push dx
 
 		xor ah, ah
 		; check if there are characters left in buffer
@@ -236,11 +241,15 @@ start:
 			je endGetChar
 
 		returnChar:
+			mov bx, inputBufferPtr
 			mov al, [inputBuffer + bx]
 			inc inputBufferPtr
 			mov ah, 1
+			mov dl, al
+			call printChar
 			
-		endGetChar:	
+		endGetChar:
+		pop dx	
 		pop bx
 		ret
 	getChar endp
@@ -267,13 +276,13 @@ start:
 			mov dx, ax
 			call printError
 			
+		endRead:
 		; AX = number of bytes actually read
 		mov bx, offset inputBuffer
 		mov inputBufferPtr, bx
 		add bx, ax
 		mov inputBufferEndPtr, bx
 
-		endRead:
 		pop dx
 		pop cx
 		pop bx
@@ -307,7 +316,7 @@ start:
 		endWrite:
 		mov bx, offset outputBuffer
 		mov outputBufferPtr, bx
-		
+
 		pop dx
 		pop cx
 		pop bx
@@ -400,7 +409,7 @@ start:
 			jne wrongOption
 
 			call getArg
-			mov bl, al
+			mov bx, ax
 			mov ax, word ptr ds:[bx]
 			mov bl, "-"
 			mov bh, "d"
@@ -437,7 +446,6 @@ start:
 		call getArg
 		mov si, ax
 		mov di, offset outputName
-
 		call copy
 
 		dec dl
@@ -528,6 +536,8 @@ start:
 
 	readArg proc ; saves one command line argument
 	; entry: 
+		push dx
+		mov dl, bl
     call putAddress
     raLoop:
       ; read next character
@@ -557,14 +567,16 @@ start:
       ; increment argument counter
       inc bl
       
+      pop dx
       ret
 	readArg endp        
 
 	putAddress proc ; saves pointer to argument
 	; entry: DL = argument index, DI = argument offset
 	    push bx
-	    xor bx, bx
+	    xor bh, bh
 	    mov bl, dl
+	    shl bl, 1
 	    mov [argPtr + bx], di
 	    
 	    pop bx
@@ -576,7 +588,8 @@ start:
 	; return: AX = argument offset
     push bx
     xor bx, bx
-    mov bl, dl 
+    mov bl, dl
+    shl bl, 1 
     mov ax, [argPtr + bx] 
     
     pop bx
