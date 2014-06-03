@@ -40,7 +40,7 @@ data segment
 	optionError			db "Invalid option. Usage: RLE [-d] input output","$"
 data ends
 
-.286
+;.286
 assume ds:data, cs:code
 
 code segment
@@ -74,32 +74,33 @@ start:
 		cmp ah, 0
 		je endCompressLoop
 		mov bl, al
-		mov cx, 1
+		xor cx, cx
 
 		compressLoop:
-			; get character
-			call getChar
-			; if file empty return
-			cmp ah, 0
-			je endCompressLoop
 			; check for previous character repeated
 			cmp al, bl
 			je addChar
 			
 			; if new char, compress previous char
 			compressChar:
-				push ax
-				mov al, bl
+				mov dl, bl
 				call charToSeq
 				mov cx, 1
-				pop ax
 				mov bl, al
-				jmp compressLoop
+				jmp cmpLoop
 
 			addChar:
 				; increment char occurence counter
 				inc cx
-				jmp compressLoop
+
+			cmpLoop:
+				; get character
+				call getChar
+				; if file empty return
+				cmp ah, 0
+				jne compressLoop
+				mov dl, bl
+				call charToSeq
 
 		endCompressLoop:
 		call forceWrite
@@ -125,15 +126,10 @@ start:
 		mov cx, 1
 
 		decompressLoop:
-			; get character
-			call getChar
-			; if file empty return
-			cmp ah, 0
-			je endDecompressLoop
 			cmp al, 0
 			je decompressChar
 			call seqToChar
-			jmp decompressLoop
+			jmp dcmpLoop
 
 			decompressChar:
 				call readSeq
@@ -141,6 +137,14 @@ start:
 				call seqToChar
 				mov cx, 1
 				jmp decompressLoop
+				
+	        dcmpLoop:
+	            ; get character
+    			call getChar
+    			; if file empty return
+    			cmp ah, 0
+    			jne decompressLoop
+	            
 
 		endDecompressLoop:
 		call forceWrite
@@ -175,10 +179,8 @@ start:
 	readSeq proc
 	; return: AL = character, CL = number of occurences
 		call getChar
-		push ax
-		call getChar
 		mov cl, al
-		pop ax
+		call getChar
 		ret
 	readSeq endp
 
@@ -187,7 +189,7 @@ start:
 		stcLoop:
 			call putChar
 			dec cl
-			cmp cl, 0
+			cmp cl, 1
 			jg stcLoop
 		ret
 	seqToChar endp
@@ -209,7 +211,7 @@ start:
 		writeToBuffer:
 			mov bx, outputBufferPtr
 			; save character to buffer
-			mov [outputBuffer + bx], dl
+			mov byte ptr [bx], dl
 			inc outputBufferPtr
 			jmp endPutChar
 
@@ -237,12 +239,13 @@ start:
 
 		readFromFile:
 			call read
+			mov bx, inputBufferPtr
 			cmp bx, inputBufferEndPtr
 			je endGetChar
 
 		returnChar:
 			mov bx, inputBufferPtr
-			mov al, [inputBuffer + bx]
+			mov al, byte ptr [bx]
 			inc inputBufferPtr
 			mov ah, 1
 			mov dl, al
