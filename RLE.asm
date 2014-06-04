@@ -199,7 +199,7 @@ start:
 			call putChar
 			dec cl
 			cmp cl, 0
-			jg stcLoop
+			jne stcLoop
 		ret
 	seqToChar endp
 
