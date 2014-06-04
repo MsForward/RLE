@@ -128,6 +128,7 @@ start:
 		decompressLoop:
 			cmp al, 0
 			je decompressChar
+			mov dl, al
 			call seqToChar
 			jmp dcmpLoop
 
@@ -136,7 +137,6 @@ start:
 				mov dl, al
 				call seqToChar
 				mov cx, 1
-				jmp decompressLoop
 				
 	        dcmpLoop:
 	        ; get character
@@ -197,7 +197,7 @@ start:
 		stcLoop:
 			call putChar
 			dec cl
-			cmp cl, 1
+			cmp cl, 0
 			jg stcLoop
 		ret
 	seqToChar endp
