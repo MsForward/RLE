@@ -139,7 +139,7 @@ start:
 				jmp decompressLoop
 				
 	        dcmpLoop:
-	            ; get character
+	        ; get character
     			call getChar
     			; if file empty return
     			cmp ah, 0
@@ -158,21 +158,29 @@ start:
 
 	charToSeq proc
 	; entry: DL = character, CL = number of occurences
-		push dx
+		push cx
+
 		cmp dl, 0
 		je RLE
 		cmp cl, 3
-		jle saveChar
+		jle saveByte
 
 		RLE:
+			push dx
 			mov dl, 0
 			call putChar
 			mov dl, cl
 			call putChar
-
-		saveChar:
+			xor cl, cl
 			pop dx
+
+		saveByte:
 			call putChar
+			dec cl
+			cmp cl, 0
+			jg saveByte
+
+		pop cx
 		ret
 	charToSeq endp
 	
