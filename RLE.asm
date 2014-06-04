@@ -40,7 +40,7 @@ data segment
 	optionError			db "Invalid option. Usage: RLE [-d] input output","$"
 data ends
 
-;.286
+.286
 assume ds:data, cs:code
 
 code segment
@@ -49,7 +49,6 @@ start:
 	call init
 	call parseArgs
 	call checkArgs
-	call printArgs
 	call fileInit
 
 	cmp optiond, 0
@@ -77,6 +76,8 @@ start:
 		xor cx, cx
 
 		compressLoop:
+			cmp cl, 0FFh
+			je compressChar
 			; check for previous character repeated
 			cmp al, bl
 			je addChar
