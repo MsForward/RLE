@@ -40,7 +40,7 @@ data segment
 	optionError			db "Invalid option. Usage: RLE [-d] input output","$"
 data ends
 
-.286
+;.286
 assume ds:data, cs:code
 
 code segment
@@ -172,14 +172,14 @@ start:
 			call putChar
 			mov dl, cl
 			call putChar
-			xor cl, cl
+			mov cl, 1
 			pop dx
 
 		saveByte:
 			call putChar
 			dec cl
 			cmp cl, 0
-			jg saveByte
+			jne saveByte
 
 		pop cx
 		ret
@@ -194,12 +194,14 @@ start:
 	readSeq endp
 
 	seqToChar proc
-	; entry: DL = character, CL = number of occurences
+	; entry: DL = character, CL = number of occurences 
+	    push cx
 		stcLoop:
 			call putChar
 			dec cl
 			cmp cl, 0
 			jne stcLoop
+	    pop cx
 		ret
 	seqToChar endp
 
