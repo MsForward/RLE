@@ -77,29 +77,28 @@ start:
 		mov cx, 1
 
 		compressLoop:
-			; get character
-			call getChar
-			; if file empty return
-			cmp ah, 0
-			je endCompressLoop
 			; check for previous character repeated
 			cmp al, bl
 			je addChar
 			
 			; if new char, compress previous char
 			compressChar:
-				push ax
-				mov al, bl
+				mov dl, bl
 				call charToSeq
 				mov cx, 1
-				pop ax
 				mov bl, al
-				jmp compressLoop
+				jmp cmpLoop
 
 			addChar:
 				; increment char occurence counter
 				inc cx
-				jmp compressLoop
+
+			cmpLoop:
+				; get character
+				call getChar
+				; if file empty return
+				cmp ah, 0
+				jne compressLoop
 
 		endCompressLoop:
 		call forceWrite
@@ -195,7 +194,6 @@ start:
 	putChar proc
 	; DL = character to write
 		push bx
-		call printChar
 		
 		; check if space left in buffer
 		mov bx, outputBufferPtr
@@ -209,9 +207,8 @@ start:
 		writeToBuffer:
 			mov bx, outputBufferPtr
 			; save character to buffer
-			mov [outputBuffer + bx], dl
+			mov byte ptr [bx], dl
 			inc outputBufferPtr
-			jmp endPutChar
 
 		endPutChar:
 		pop bx
@@ -237,16 +234,15 @@ start:
 
 		readFromFile:
 			call read
+			mov bx, inputBufferPtr
 			cmp bx, inputBufferEndPtr
 			je endGetChar
 
 		returnChar:
-			mov bx, inputBufferPtr
-			mov al, [inputBuffer + bx]
+			mov al, byte ptr [bx]
 			inc inputBufferPtr
 			mov ah, 1
 			mov dl, al
-			call printChar
 			
 		endGetChar:
 		pop dx	
