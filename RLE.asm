@@ -162,13 +162,23 @@ start:
 		push cx
 
 		cmp dl, 0
-		je RLE
+		je nullByte
 		cmp cl, 3
 		jbe saveByte
 
+		nullByte:
+			cmp cl, 1
+			ja RLE
+			push dx
+			xor dl, dl
+			call putChar
+			call putChar
+			pop dx
+			jmp endCharToSeq
+
 		RLE:
 			push dx
-			mov dl, 0
+			xor dl, dl
 			call putChar
 			mov dl, cl
 			call putChar
@@ -181,6 +191,8 @@ start:
 			cmp cl, 0
 			jne saveByte
 
+		endCharToSeq:
+
 		pop cx
 		ret
 	charToSeq endp
@@ -188,8 +200,17 @@ start:
 	readSeq proc
 	; return: AL = character, CL = number of occurences
 		call getChar
+		cmp al, 0
+		jne contReadSeq
+		mov cl, 1
+		xor al, al
+		jmp endReadSeq
+
+		contReadSeq:
 		mov cl, al
 		call getChar
+
+		endReadSeq:
 		ret
 	readSeq endp
 
