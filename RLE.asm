@@ -164,7 +164,7 @@ start:
 		cmp dl, 0
 		je RLE
 		cmp cl, 3
-		jle saveByte
+		jbe saveByte
 
 		RLE:
 			push dx
